@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
+import ThemeToggle from './components/ThemeToggle';
 
 function Spinner() {
   return (
@@ -26,6 +27,10 @@ export default function App() {
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
+  // Minimum spinner visibility (ms). Tune this value to taste: 400-900ms are common.
+  const MIN_LOADING_MS = 700;
+  const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
@@ -42,36 +47,50 @@ export default function App() {
       return;
     }
 
-    // If mock mode, simulate a delay then show static result
+    const startedAt = Date.now();
+    setLoading(true);
+
+    // Mock mode: simulate backend but ensure spinner stays visible at least MIN_LOADING_MS
     if (mockMode) {
-      setLoading(true);
-      setTimeout(() => {
-        setLoading(false);
+      try {
+        // simulate short network jitter so mock feels realistic
+        await sleep(140 + Math.random() * 400); // ~140-540ms
         setResult(['Design API','Implement Backend','Build Frontend','End-to-End Test']);
         setSuccessMsg('Result (mocked) — backend not called.');
-      }, 900);
+      } catch (err) {
+        setError(`Mock failed: ${err.message}`);
+      } finally {
+        const elapsed = Date.now() - startedAt;
+        const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+        await sleep(remaining);
+        setLoading(false);
+      }
       return;
     }
 
-    setLoading(true);
+    // Real network request
     try {
       const resp = await fetch(`${backendUrl}/api/v1/projects/demo/schedule`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyObj),
       });
 
-      // network-level success, but server may return 400 with JSON
       const data = await resp.json().catch(() => null);
       if (!resp.ok) {
         const msg = data?.error || `Server returned ${resp.status}`;
         throw new Error(msg);
       }
+
       setResult(data.recommendedOrder || []);
       setSuccessMsg('Schedule computed successfully.');
     } catch (err) {
       setError(`Request failed: ${err.message}`);
     } finally {
+      // ensure spinner visible at least MIN_LOADING_MS
+      const elapsed = Date.now() - startedAt;
+      const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+      await sleep(remaining);
       setLoading(false);
     }
   }
@@ -80,64 +99,75 @@ export default function App() {
     if (!result) return;
     navigator.clipboard.writeText(JSON.stringify(result, null, 2));
     setSuccessMsg('Result copied to clipboard.');
-    setTimeout(()=>setSuccessMsg(null), 1500);
+    setTimeout(() => setSuccessMsg(null), 1500);
   }
 
   return (
     <div className="app-root">
-      <header className="app-header">
-        <h1>Smart Scheduler — Demo</h1>
-        <small>Paste tasks as JSON and click <strong>Schedule</strong></small>
+      {/* ====== HEADER: replaced with brand + theme toggle ====== */}
+      <header className="header card">
+        <div className="brand">
+          <div className="logo">SS</div>
+          <div>
+            <div className="title">Smart Scheduler</div>
+            <div className="subtitle">Plan tasks automatically — Demo</div>
+          </div>
+        </div>
+
+        <div className="controls">
+          {/* ThemeToggle lives here */}
+          <ThemeToggle />
+        </div>
       </header>
 
-      <main className="app-main">
+      <main className="app-main card">
         <form onSubmit={handleSubmit} className="form">
           <label htmlFor="tasks">Tasks JSON</label>
           <textarea
             id="tasks"
             value={inputJson}
             onChange={e => setInputJson(e.target.value)}
-            className="json-input"
+            className="json-input input"
             rows={12}
             aria-label="Tasks JSON"
           />
 
-          <div className="controls">
-            <label className="mock-toggle">
-              <input type="checkbox" checked={mockMode} onChange={e=>setMockMode(e.target.checked)} />
+          <div className="controls form-controls" style={{ marginTop: 12 }}>
+            <label className="mock-toggle small">
+              <input type="checkbox" checked={mockMode} onChange={e => setMockMode(e.target.checked)} />
               Mock mode (test UI without backend)
             </label>
 
             <div className="buttons">
-              <button type="submit" className="primary" disabled={loading}>
+              <button type="submit" className="primary btn" disabled={loading}>
                 {loading ? 'Scheduling...' : 'Schedule'}
               </button>
             </div>
           </div>
         </form>
 
-        <section className="feedback" aria-live="polite">
-          {loading && <div className="loading-row"><Spinner /><span>Working on it…</span></div>}
+        <section className="feedback" aria-live="polite" style={{ marginTop: 18 }}>
+          {loading && <div className="loading-row"><Spinner /><span style={{ marginLeft: 8 }}>Working on it…</span></div>}
           {error && <div className="error">{error}</div>}
           {successMsg && <div className="success">{successMsg}</div>}
 
           {result && (
-            <div className="result-card">
-              <div className="result-head">
-                <h3>Recommended order</h3>
+            <div className="result-card card" style={{ marginTop: 12 }}>
+              <div className="result-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h3 style={{ margin: 0 }}>Recommended order</h3>
                 <div>
-                  <button onClick={copyResult} className="small">Copy</button>
+                  <button onClick={copyResult} className="small btn secondary">Copy</button>
                 </div>
               </div>
-              <ol className="result-list">
-                {result.map((t,i)=> <li key={i}>{t}</li>)}
+              <ol className="result-list" style={{ marginTop: 12 }}>
+                {result.map((t, i) => <li key={i}>{t}</li>)}
               </ol>
             </div>
           )}
         </section>
       </main>
 
-      <footer className="app-footer">
+      <footer className="app-footer small card" style={{ marginTop: 18 }}>
         <div>Backend URL: <code>{backendUrl}</code></div>
       </footer>
     </div>
