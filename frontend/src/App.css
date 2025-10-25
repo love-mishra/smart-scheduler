@@ -1,0 +1,83 @@
+/* App.css - responsive + spinner styles */
+:root{
+  --max-width: 900px;
+  --gap: 12px;
+  --accent: #2563eb;
+  --muted: #666;
+  --bg: #f7fafc;
+}
+
+*{box-sizing:border-box}
+body,html,#root{height:100%; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+
+.app-root{
+  max-width:var(--max-width);
+  margin:18px auto;
+  padding:16px;
+  background:white;
+  border-radius:10px;
+  box-shadow: 0 6px 20px rgba(20,20,30,0.06);
+}
+
+.app-header h1{margin:0 0 4px 0; font-size:1.3rem}
+.app-header small{color:var(--muted)}
+
+.form{display:flex; flex-direction:column; gap:var(--gap); margin-top:14px}
+label{font-weight:600; font-size:0.92rem}
+.json-input{
+  width:100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+  font-size:13px;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #e6e9ee;
+  resize:vertical;
+  min-height:160px;
+}
+
+/* controls row */
+.controls{display:flex; justify-content:space-between; align-items:center; gap:var(--gap)}
+.mock-toggle{display:flex; align-items:center; gap:8px; color:var(--muted)}
+.buttons{display:flex; gap:8px}
+button{cursor:pointer}
+.primary{
+  background:var(--accent);
+  color:white;
+  border:none;
+  padding:10px 14px;
+  border-radius:8px;
+  font-weight:600;
+}
+.primary:disabled{opacity:0.6; cursor:not-allowed}
+
+/* feedback */
+.feedback{margin-top:14px}
+.loading-row{display:flex; align-items:center; gap:10px; color:var(--muted)}
+.error{background:#fee2e2;color:#991b1b;padding:10px;border-radius:8px}
+.success{background:#ecfdf5;color:#065f46;padding:10px;border-radius:8px}
+
+/* result */
+.result-card{margin-top:12px;border:1px solid #eef2ff;padding:12px;border-radius:10px}
+.result-head{display:flex;justify-content:space-between;align-items:center}
+.result-list{padding-left:20px;margin:8px 0}
+
+/* small button */
+.small{background:#eef2ff;border:none;padding:6px 8px;border-radius:6px;color:var(--accent);font-weight:600;cursor:pointer}
+
+/* spinner (simple CSS) */
+.spinner{display:inline-grid; grid-auto-flow:column; gap:6px}
+.spinner > div{
+  width:8px; height:8px; border-radius:2px; background:#94a3b8; animation:spin 1s linear infinite;
+}
+.spinner > div:nth-child(2){animation-delay:0.12s}
+.spinner > div:nth-child(3){animation-delay:0.24s}
+.spinner > div:nth-child(4){animation-delay:0.36s}
+@keyframes spin{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+
+/* responsive layout */
+@media (max-width:720px){
+  .app-root{margin:10px;padding:12px}
+  .primary{width:120px;padding:8px}
+  .json-input{font-size:12px}
+  .app-header h1{font-size:1.1rem}
+}
