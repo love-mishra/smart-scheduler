@@ -1,3 +1,5 @@
+# bonus task in the assignment / Deployment Link
+https://smart-scheduler-ten.vercel.app/
 # Smart Scheduler
 
 Small demo project: a backend API that recommends a task order given tasks with dependencies, and a React frontend to call it.
